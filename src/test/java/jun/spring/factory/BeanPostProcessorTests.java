@@ -2,11 +2,16 @@ package jun.spring.factory;
 
 import jun.spring.model.Avante;
 import jun.spring.model.Car;
+import jun.spring.model.Engine;
+import jun.spring.model.VDIEngine;
 import org.junit.Test;
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.beans.factory.annotation.InitDestroyAnnotationBeanPostProcessor;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.DestructionAwareBeanPostProcessor;
+import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.context.annotation.CommonAnnotationBeanPostProcessor;
@@ -15,6 +20,8 @@ import org.springframework.context.support.GenericApplicationContext;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
+
+import java.util.Properties;
 
 import static org.junit.Assert.*;
 import static org.junit.Assert.assertFalse;
@@ -110,17 +117,17 @@ public class BeanPostProcessorTests {
         bf.registerBeanDefinition("annotatedBean", new RootBeanDefinition(ResourceInjectionBean.class));
 
         Avante tb = new Avante("아방이");
-        bf.registerSingleton("avante", tb);
+        bf.registerSingleton("testBean", tb);
         Avante tb2 = new Avante("아방이");
-        bf.registerSingleton("avante2", tb2);
+        bf.registerSingleton("testBean2", tb2);
 
         ResourceInjectionBean bean = (ResourceInjectionBean) bf.getBean("annotatedBean");
 
         assertTrue(bean.initCalled);
         assertTrue(bean.init2Called);
         assertTrue(bean.init3Called);
-        assertSame(tb, bean.getAvante());
-        assertSame(tb2, bean.getAvante2());
+        assertSame(tb, bean.getTestBean());
+        assertSame(tb2, bean.getTestBean2());
         bf.destroySingletons();
         assertTrue(bean.destroyCalled);
         assertTrue(bean.destroy2Called);
@@ -139,25 +146,25 @@ public class BeanPostProcessorTests {
         bf.registerBeanDefinition("annotatedBean", abd);
         RootBeanDefinition tbd1 = new RootBeanDefinition(Avante.class);
         tbd1.setScope(BeanDefinition.SCOPE_PROTOTYPE);
-        bf.registerBeanDefinition("avante", tbd1);
+        bf.registerBeanDefinition("testBean", tbd1);
         RootBeanDefinition tbd2 = new RootBeanDefinition(Avante.class);
         tbd2.setScope(BeanDefinition.SCOPE_PROTOTYPE);
-        bf.registerBeanDefinition("avante2", tbd2);
+        bf.registerBeanDefinition("testBean2", tbd2);
 
         ResourceInjectionBean bean = (ResourceInjectionBean) bf.getBean("annotatedBean");
         assertTrue(bean.initCalled);
         assertTrue(bean.init2Called);
         assertTrue(bean.init3Called);
 
-        Avante tb = bean.getAvante();
-        Avante tb2 = bean.getAvante2();
+        Avante tb = bean.getTestBean();
+        Avante tb2 = bean.getTestBean2();
         assertNotNull(tb);
         assertNotNull(tb2);
 
         ResourceInjectionBean anotherBean = (ResourceInjectionBean) bf.getBean("annotatedBean");
         assertNotSame(anotherBean, bean);
-        assertNotSame(anotherBean.getAvante(), tb);
-        assertNotSame(anotherBean.getAvante2(), tb2);
+        assertNotSame(anotherBean.getTestBean(), tb);
+        assertNotSame(anotherBean.getTestBean2(), tb2);
 
         bf.destroyBean("annotatedBean", bean);
         assertTrue(bean.destroyCalled);
@@ -172,18 +179,112 @@ public class BeanPostProcessorTests {
         bpp.setBeanFactory(bf);
         bf.addBeanPostProcessor(bpp);
 
-        RootBeanDefinition abd = new RootBeanDefinition();
+        RootBeanDefinition abd = new RootBeanDefinition(ExtendedREsourceInjectionBean.class);
+        abd.setScope(BeanDefinition.SCOPE_PROTOTYPE);
+        bf.registerBeanDefinition("annotatedBean", abd);
+        RootBeanDefinition tbd = new RootBeanDefinition(Avante.class);
+        tbd.setScope(BeanDefinition.SCOPE_PROTOTYPE);
+        bf.registerBeanDefinition("testBean4", tbd);
 
+        bf.registerResolvableDependency(BeanFactory.class, bf);
+        bf.registerResolvableDependency(Engine.class, new ObjectFactory<Object>() {
+            public Object getObject() throws BeansException {
+                return new VDIEngine();
+            }
+        });
+
+        PropertyPlaceholderConfigurer ppc = new PropertyPlaceholderConfigurer();
+        Properties props = new Properties();
+        props.setProperty("tb", "testBean4");
+        ppc.setProperties(props);
+        ppc.postProcessBeanFactory(bf);
+
+        ExtendedREsourceInjectionBean bean = (ExtendedREsourceInjectionBean) bf.getBean("annotatedBean");
+        Engine tb = bean.getTestBean6();
+        assertNotNull(tb);
+
+
+        ExtendedREsourceInjectionBean anotherBean = (ExtendedREsourceInjectionBean) bf.getBean("annotatedBean");
+        assertNotSame(anotherBean, bean);
+        assertNotSame(anotherBean.getTestBean6(), tb);
+
+        String[] depBeans = bf.getDependenciesForBean("annotatedBean");
+        assertEquals(1, depBeans.length);
+        assertEquals("testBean4", depBeans[0]);
     }
 
-    public static class NonPublicInjectionBean<B> extends ResourceInjectionBean {
+    public static class ExtendedREsourceInjectionBean extends NonPublicResourceInjectionBean {}
+
+    public static class NonPublicResourceInjectionBean<B> extends ResourceInjectionBean {
 
         @Resource(name = "testBean4", type = Avante.class)
         protected Car testBean3;
 
-        private B tsetBean4;
+        private B testBean4;
 
+        @Resource
+        Engine testBean5;
 
+        Engine testBean6;
+
+        @Resource
+        BeanFactory beanFactory;
+
+        @Override
+        @Resource
+        public void setTestBean2(Avante testBean2) {
+            System.out.println("NonPublicResourceInjectionBean setTestBean2 실행");
+            super.setTestBean2(testBean2);
+        }
+
+        @Resource(name = "${tb}", type = Car.class)
+        private void setTestBean4(B testBean4) {
+            System.out.println("NonPublicResourceInjectionBean setTestBean4 실행");
+            if (this.testBean4 != null) {
+                throw new IllegalStateException("Already called");
+            }
+            this.testBean4 = testBean4;
+        }
+
+        public void setTestBean6(Engine testBean6) {
+            System.out.println("NonPublicResourceInjectionBean setTestBean6 실행");
+            if (this.testBean6 != null) {
+                throw new IllegalStateException("Already called");
+            }
+            this.testBean6 = testBean6;
+        }
+
+        public Car getTestBean3() {
+            return testBean3;
+        }
+
+        public B getTestBean4() {
+            return testBean4;
+        }
+
+        public Engine getTestBean5() {
+            return testBean5;
+        }
+
+        public Engine getTestBean6() {
+            return testBean6;
+        }
+
+        @Override
+        @PostConstruct
+        protected void init2() {
+            System.out.println("NonPublicResourceInjectionBean init2 초기화");
+            if (testBean3 == null || this.testBean4 == null) {
+                throw new IllegalStateException("Resources not injected");
+            }
+            super.init2();
+        }
+
+        @Override
+        @PreDestroy
+        protected void destroy2() {
+            super.destroy2();
+        }
     }
 
     public static class ResourceInjectionBean extends AnnotatedInitDestroyBean {
@@ -201,14 +302,14 @@ public class BeanPostProcessorTests {
         public boolean destroy3Called = false;
 
         @Resource
-        Avante avante;
+        Avante testBean;
 
-        Avante avante2;
+        Avante testBean2;
 
         @PostConstruct
         protected void init2() {
-            System.out.println("init2 하위 빈 후 초기화");
-            if (this.avante == null || this.avante2 == null) {
+            System.out.println("ResourceInjectionBean init2 빈 초기화");
+            if (this.testBean == null || this.testBean2 == null) {
                 throw new IllegalStateException("Resources not injected");
             }
             if (!this.initCalled) {
@@ -222,7 +323,7 @@ public class BeanPostProcessorTests {
 
         @PostConstruct
         private void init() {
-            System.out.println("init 하위 빈 후 초기화");
+            System.out.println("ResourceInjectionBean init 빈 초기화");
             if (this.init3Called) {
                 throw new IllegalStateException("Already called");
             }
@@ -231,7 +332,7 @@ public class BeanPostProcessorTests {
 
         @PreDestroy
         protected void destroy2() {
-            System.out.println("Protected destroy2 하위 빈 제거");
+            System.out.println("ResourceInjectionBean destroy2 빈 제거");
             if (this.destroyCalled) {
                 throw new IllegalStateException("Superclass destroy called too soon");
             }
@@ -243,7 +344,7 @@ public class BeanPostProcessorTests {
 
         @PreDestroy
         private void destroy() {
-            System.out.println("Protected destroy 하위 빈 제거");
+            System.out.println("ResourceInjectionBean destroy 빈 제거");
             if (this.destroyCalled) {
                 throw new IllegalStateException("Superclass destroy called too soon");
             }
@@ -254,27 +355,27 @@ public class BeanPostProcessorTests {
         }
 
         @Resource
-        public void setAvante2(Avante avante2) {
-            System.out.println("avante2 주입");
-            if (this.avante2 != null) {
+        public void setTestBean2(Avante testBean2) {
+            System.out.println("ResourceInjectionBean testBean2 주입");
+            if (this.testBean2 != null) {
                 throw new IllegalStateException("Already called");
             }
-            this.avante2 = avante2;
+            this.testBean2 = testBean2;
         }
 
-        public Avante getAvante() {
-            return avante;
+        public Avante getTestBean() {
+            return testBean;
         }
 
-        public Avante getAvante2() {
-            return avante2;
+        public Avante getTestBean2() {
+            return testBean2;
         }
     }
 
     public static class AnnotatedInitDestroyBean {
 
         public AnnotatedInitDestroyBean() {
-            System.out.println("빈 초기화");
+            System.out.println("AnnotatedInitDestroyBean 빈 초기화");
         }
 
         public boolean initCalled = false;
@@ -284,7 +385,7 @@ public class BeanPostProcessorTests {
 
         @PostConstruct
         private void init() {
-            System.out.println("빈 후 초기화");
+            System.out.println("AnnotatedInitDestroyBean 빈 후 초기화");
             if (this.initCalled) {
                 throw new IllegalStateException("Already called");
             }
@@ -293,7 +394,7 @@ public class BeanPostProcessorTests {
 
         @PreDestroy
         private void destroy() {
-            System.out.println("빈 종료");
+            System.out.println("AnnotatedInitDestroyBean 빈 종료");
             if (this.destroyCalled) {
                 throw new IllegalStateException("Already called");
             }
@@ -306,7 +407,7 @@ public class BeanPostProcessorTests {
 
         // 빈이 초기화 되기 전 단계
         public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
-            System.out.println("빈이 초기화 되기 전 단계 테스트");
+            System.out.println("빈 초기화 전(Before) PostProcess 실행");
             if (bean instanceof AnnotatedInitDestroyBean) {
                 assertFalse(((AnnotatedInitDestroyBean) bean).initCalled);
             }
@@ -315,7 +416,7 @@ public class BeanPostProcessorTests {
 
 
         public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
-            System.out.println("빈이 초기화 된 후 단계 테스트");
+            System.out.println("빈 초기화 후(After) PostProcess 실행");
             if (bean instanceof AnnotatedInitDestroyBean) {
                 assertTrue(((AnnotatedInitDestroyBean) bean).initCalled);
             }
@@ -323,7 +424,7 @@ public class BeanPostProcessorTests {
         }
 
         public void postProcessBeforeDestruction(Object bean, String beanName) throws BeansException {
-            System.out.println("빈이 종료되기 전 단계");
+            System.out.println("빈 종료 전 Post Process 실행");
             if (bean instanceof AnnotatedInitDestroyBean) {
                 assertFalse(((AnnotatedInitDestroyBean) bean).destroyCalled);
             }
