@@ -12,7 +12,7 @@ import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsNull.notNullValue;
 import static org.junit.Assert.*;
 
-public class DefaultListableBeanFactoryTests {
+public class BeanFactoryCrudTests {
 
     DefaultListableBeanFactory dlbf;
 
