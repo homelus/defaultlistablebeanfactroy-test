@@ -179,7 +179,7 @@ public class BeanPostProcessorTests {
         bpp.setBeanFactory(bf);
         bf.addBeanPostProcessor(bpp);
 
-        RootBeanDefinition abd = new RootBeanDefinition(ExtendedREsourceInjectionBean.class);
+        RootBeanDefinition abd = new RootBeanDefinition(ExtendedResourceInjectionBean.class);
         abd.setScope(BeanDefinition.SCOPE_PROTOTYPE);
         bf.registerBeanDefinition("annotatedBean", abd);
         RootBeanDefinition tbd = new RootBeanDefinition(Avante.class);
@@ -199,12 +199,12 @@ public class BeanPostProcessorTests {
         ppc.setProperties(props);
         ppc.postProcessBeanFactory(bf);
 
-        ExtendedREsourceInjectionBean bean = (ExtendedREsourceInjectionBean) bf.getBean("annotatedBean");
+        ExtendedResourceInjectionBean bean = (ExtendedResourceInjectionBean) bf.getBean("annotatedBean");
         Engine tb = bean.getTestBean6();
         assertNotNull(tb);
 
 
-        ExtendedREsourceInjectionBean anotherBean = (ExtendedREsourceInjectionBean) bf.getBean("annotatedBean");
+        ExtendedResourceInjectionBean anotherBean = (ExtendedResourceInjectionBean) bf.getBean("annotatedBean");
         assertNotSame(anotherBean, bean);
         assertNotSame(anotherBean.getTestBean6(), tb);
 
@@ -213,7 +213,7 @@ public class BeanPostProcessorTests {
         assertEquals("testBean4", depBeans[0]);
     }
 
-    public static class ExtendedREsourceInjectionBean extends NonPublicResourceInjectionBean {}
+    public static class ExtendedResourceInjectionBean extends NonPublicResourceInjectionBean<Car> {}
 
     public static class NonPublicResourceInjectionBean<B> extends ResourceInjectionBean {
 
