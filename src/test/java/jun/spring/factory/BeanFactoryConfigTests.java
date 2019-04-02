@@ -18,7 +18,7 @@ import static org.junit.Assert.assertEquals;
  */
 public class BeanFactoryConfigTests {
 
-    DefaultListableBeanFactory factory;
+    private DefaultListableBeanFactory factory;
 
     @Before
     public void init() {

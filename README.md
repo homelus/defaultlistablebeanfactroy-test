@@ -35,18 +35,27 @@
 2. BeanDefinition 에 등록되있는 경우
     - 싱글톤으로 등록되어 있는 경우 1번의 케이스를 따른다.
     - 싱글톤으로 등록되지 않았을 경우 다음의 순서를 따른다.
-        - AbstractBeanFactory 의 mergedBeanDefinition Map 에 없는 경우 복사하여 스코프 설정(싱글톤) 뒤 추가한뒤 반환한다.. (AbstractBeanFactory - getMergedLocalBeanDefinition)
-        - 반환받은 BeanDefinition 으로 유효성 검사를 진행한다.(AbstractBeanFactory - checkMergedBeanDefinition)
-        - mergedBeanDefinition 으로 객체를 생성한다. (AbstractAutowireCapableBeanFactory - createBean -> doCreateBean -> createBeanInstance -> instantiateBean)
-            - instantiateBean 메소드 안에서 getInstantiateionStrategy() 메소드로 빈을 생성할 전략을 가져와 instantiate() 메소드를 호출 해 빈을 생성한다.
-            - 예) SimpleInstantiationStrategy(BeanDefinition 에 저장된 Class 로 기본 생성자를 추출한 뒤 newInstance() 로 인스턴스를 생성)
-        - 초기화를 진행한다. (AbstractAutowireCapableBeanFactory - initializeBean)
-            - Aware 류를 구현했을 경우 세팅해준다. (빈이름, BeanClassLoader, BeanFactory 등)                     
-            - BeanFactory 에 등록된 BeanPostProcessor(AbstractBeanFactory 의 BeanPostProcessors Map) 가 있다면 beanPostProcessor 의 <b>postProcessBeforeInitialization</b> 메소드를 실행시킨다.
-            - Bean 이 InitializingBean 를 구현했다면 afterPropertiesSet 메소드를 실행시킨다.
-            - BeanFactory 에 등록된 BeanPostProcessor(AbstractBeanFactory 의 BeanPostProcessors Map) 가 있다면 beanPostProcessor 의 <b>postProcessAfterInitialization</b> 메소드를 실행시킨다.
-        - 객체를 만들고 DefaultSingletonBeanRegistry 의 singletonObjects Map 에 추가한다.
-    - 만약 부모 빈 팩토리가 존재하고 자신의 빈 팩토리에 BeanDefinition 이 없으면 부모의 빈팩토리에서 검색해 가져온다.
+        - 만약 부모 빈 팩토리가 존재하고 자신의 빈 팩토리에 BeanDefinition 이 없으면 부모의 빈팩토리에서 검색 후 반환한다.
+        - 부모 빈팩토리에 빈이 없다면 다음의 순서를 따른다.
+            - AbstractBeanFactory 의 mergedBeanDefinition Map 에 없는 경우 복사하여 스코프 설정(싱글톤) 뒤 추가한뒤 반환한다.. (AbstractBeanFactory - getMergedLocalBeanDefinition)
+            - 먼저 설정되야 하는 빈(dependsOn)이 있다면 해당 빈들을 생성한다. (추후 내용 추가)
+            - 반환받은 BeanDefinition 으로 유효성 검사를 진행한다.(AbstractBeanFactory - checkMergedBeanDefinition)
+            - Bean 의 scope 에 따라 아래 3가지로 나뉜다.
+                1. Singleton(DefaultSingletonBeanRegistry - getSingleton)
+                    - mergedBeanDefinition 으로 객체를 생성한다. (AbstractAutowireCapableBeanFactory - createBean -> doCreateBean -> createBeanInstance -> instantiateBean)
+                        - instantiateBean 메소드 안에서 getInstantiateionStrategy() 메소드로 빈을 생성할 전략을 가져와 instantiate() 메소드를 호출 해 빈을 생성한다.
+                        - 예) SimpleInstantiationStrategy(BeanDefinition 에 저장된 Class 로 기본 생성자를 추출한 뒤 newInstance() 로 인스턴스를 생성)
+                    - 초기화를 진행한다. (AbstractAutowireCapableBeanFactory - initializeBean)
+                        - Aware 류를 구현했을 경우 세팅해준다. (빈이름, BeanClassLoader, BeanFactory 등)                     
+                        - BeanFactory 에 등록된 BeanPostProcessor(AbstractBeanFactory 의 BeanPostProcessors Map) 가 있다면 beanPostProcessor 의 <b>postProcessBeforeInitialization</b> 메소드를 실행시킨다.
+                        - Bean 이 InitializingBean 를 구현했다면 afterPropertiesSet 메소드를 실행시킨다.
+                        - BeanFactory 에 등록된 BeanPostProcessor(AbstractBeanFactory 의 BeanPostProcessors Map) 가 있다면 beanPostProcessor 의 <b>postProcessAfterInitialization</b> 메소드를 실행시킨다.
+                    - 객체를 만들고 DefaultSingletonBeanRegistry 의 singletonObjects Map 에 추가한다.
+                2. Prototype
+                3. Etc(Request, Session 등등..) 
+            
+        
+         
     
-3. 빈을 가져올 때 처리되는 많은 부분이 생략되었는데 추후에 점점 추가할 예정이다.
+※ 빈을 가져올 때 처리되는 많은 부분이 생략되었는데 추후에 점점 추가할 예정이다.
     
