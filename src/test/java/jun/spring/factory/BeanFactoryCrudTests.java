@@ -14,7 +14,7 @@ import static org.junit.Assert.*;
 
 public class BeanFactoryCrudTests {
 
-    DefaultListableBeanFactory dlbf;
+    private DefaultListableBeanFactory dlbf;
 
     @Before
     public void init() {
@@ -64,8 +64,6 @@ public class BeanFactoryCrudTests {
         assertThat(dlbf.getBean("avante"), is(notNullValue()));
         assertThat(dlbf.getBean("avante", Avante.class), is(notNullValue()));
         assertThat(dlbf.getBean(Avante.class), is(notNullValue()));
-
-
     }
 
 }
