@@ -1,10 +1,14 @@
 package jun.spring.bean;
 
+import jun.spring.model.Avante;
 import jun.spring.model.IndexedCar;
 import org.junit.Test;
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;
+import org.springframework.beans.MutablePropertyValues;
 import org.springframework.beans.propertyeditors.StringTrimmerEditor;
+
+import java.beans.PropertyEditorSupport;
 
 import static junit.framework.Assert.assertTrue;
 import static junit.framework.TestCase.*;
@@ -106,7 +110,53 @@ public class BeanWrapperTests {
 
     @Test
     public void 프로퍼티_가져오는_테스트() {
+        GetterBean gb = new GetterBean();
+        BeanWrapper bw = new BeanWrapperImpl(gb);
+        bw.setPropertyValue("name", "jun");
+        assertTrue("Set name to jun", gb.getName().equals("jun"));
+    }
 
+    @Test
+    public void 빈_수정_테스트() {
+        Avante avante = new Avante();
+        String newName = "newAvante";
+
+        try {
+            BeanWrapper bw = new BeanWrapperImpl(avante);
+            avante.setName(newName);
+            Object bwName = bw.getPropertyValue("name");
+            assertTrue("Age is  an String", bwName instanceof String);
+            String strBw = ((String) bwName);
+            assertTrue("Bean Wrapper must pick up changes", strBw == newName);
+        } catch (Exception ex) {
+            fail("Shouldn't throw exception when everything is valid");
+        }
+    }
+
+    @Test
+    public void 기본_타입에서_문자열로_변환_테스트() {
+        MutablePropertyValues values = new MutablePropertyValues();
+        values.add("name", new Integer(42));
+        Avante avante = new Avante();
+        BeanWrapper bw = new BeanWrapperImpl(avante);
+        bw.setPropertyValues(values);
+        assertEquals("42", avante.getName());
+    }
+
+    @Test
+    public void 클래스_타입에서_문자열로_변환_테스트() {
+        MutablePropertyValues values = new MutablePropertyValues();
+        values.add("name", Integer.class);
+        Avante avante = new Avante();
+        BeanWrapper bw = new BeanWrapperImpl(avante);
+        bw.registerCustomEditor(String.class,  new PropertyEditorSupport() {
+            @Override
+            public void setValue(Object value) {
+                super.setValue(value.toString());
+            }
+        });
+        bw.setPropertyValues(values);
+        assertEquals(Integer.class.toString(), avante.getName());
     }
 
     private static class NoRead {
@@ -114,5 +164,22 @@ public class BeanWrapperTests {
 
         }
     }
+
+    private static class GetterBean {
+
+        private String name;
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        public String getName() {
+            if (this.name == null) {
+                throw new RuntimeException("name property must be set");
+            }
+            return name;
+        }
+    }
+
 
 }
