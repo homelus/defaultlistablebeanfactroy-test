@@ -2,7 +2,7 @@ package jun.spring.model;
 
 import lombok.Data;
 
-public class Avante extends AbstractCar {
+public class Avante extends AbstractCar implements Comparable{
 
     public Avante() {}
 
@@ -22,5 +22,13 @@ public class Avante extends AbstractCar {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public int compareTo(Object other) {
+        if (this.name != null && other instanceof Avante) {
+            return this.name.compareTo(((Avante) other).getName());
+        }  else {
+            return 1;
+        }
     }
 }

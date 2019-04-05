@@ -4,7 +4,6 @@ import lombok.Data;
 
 import java.util.*;
 
-@Data
 public class IndexedCar {
 
     private Car[]  array;
@@ -58,5 +57,61 @@ public class IndexedCar {
         list.add(avanteY);
         this.map.put("key4", list);
 
+    }
+
+    public Car[] getArray() {
+        return array;
+    }
+
+    public void setArray(Car[] array) {
+        this.array = array;
+    }
+
+    public Collection<?> getCollection() {
+        return collection;
+    }
+
+    public void setCollection(Collection<?> collection) {
+        this.collection = collection;
+    }
+
+    public List getList() {
+        return list;
+    }
+
+    public void setList(List list) {
+        this.list = list;
+    }
+
+    public Set<? super Object> getSet() {
+        return set;
+    }
+
+    public void setSet(Set<? super Object> set) {
+        this.set = set;
+    }
+
+    public SortedSet<? super Object> getSortedSet() {
+        return sortedSet;
+    }
+
+    public void setSortedSet(SortedSet<? super Object> sortedSet) {
+        this.sortedSet = sortedSet;
+    }
+
+    public Map getMap() {
+        return map;
+    }
+
+    public void setMap(Map map) {
+        this.map = map;
+    }
+
+    public SortedMap getSortedMap() {
+        return sortedMap;
+    }
+
+    public void setSortedMap(SortedMap sortedMap) {
+        this.sortedMap = sortedMap;
     }
 }
