@@ -2,11 +2,14 @@ package jun.spring.bean;
 
 import com.sun.javaws.jnl.PropertyDesc;
 import jun.spring.model.Avante;
+import jun.spring.model.DerivedAvante;
 import lombok.Data;
 import org.junit.Test;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.FatalBeanException;
 import org.springframework.beans.propertyeditors.CustomDateEditor;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceEditor;
 
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
@@ -52,6 +55,34 @@ public class BeanUtilTests {
         }
     }
 
+    @Test
+    public void 이름에의한_EDITOR_검색_테스트() {
+        assertEquals(ResourceEditor.class, BeanUtils.findEditorByConvention(Resource.class).getClass());
+    }
+
+    @Test
+    public void 프로퍼티_복사_테스트() {
+        Avante avante = new Avante();
+        avante.setName("아방이");
+        Avante avante1 = new Avante();
+        assertTrue("Name empty", avante1.getName() == null);
+
+        BeanUtils.copyProperties(avante, avante1);
+        assertTrue("Name copied", avante1.getName().equals(avante.getName()));
+    }
+
+    @Test
+    public void 다른_클래스인경우_프로퍼티_복사_테스트() {
+        DerivedAvante avante = new DerivedAvante();
+        avante.setName("아방이");
+
+        Avante avante1 = new Avante();
+
+        assertTrue("Name empty", avante1.getName() == null);
+
+        BeanUtils.copyProperties(avante, avante1);
+        assertTrue("Name Copied", avante1.getName().equals(avante.getName()));
+    }
 
     @Data
     private static class ContainerBean {
