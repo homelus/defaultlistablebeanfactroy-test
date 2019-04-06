@@ -2,6 +2,7 @@ package jun.spring.bean;
 
 import jun.spring.model.Avante;
 import jun.spring.model.IndexedCar;
+import jun.spring.model.Seat;
 import org.junit.Test;
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;
@@ -157,6 +158,21 @@ public class BeanWrapperTests {
         });
         bw.setPropertyValues(values);
         assertEquals(Integer.class.toString(), avante.getName());
+    }
+
+    @Test
+    public void BOOLEAN_테스트() {
+        Seat seat = new Seat();
+        BeanWrapper bw = new BeanWrapperImpl(seat);
+
+        bw.setPropertyValue("use", "true");
+        assertTrue("Correct use value", Boolean.TRUE.equals(bw.getPropertyValue("use")));
+        assertTrue("Correct use value", seat.getUse().booleanValue());
+
+        bw.setPropertyValue("use", "false");
+        assertTrue("Correct use value", Boolean.FALSE.equals(bw.getPropertyValue("use")));
+        assertTrue("Correct use value", !seat.getUse().booleanValue());
+
     }
 
     private static class NoRead {
