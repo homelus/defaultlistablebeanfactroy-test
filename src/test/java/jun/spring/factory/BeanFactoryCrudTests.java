@@ -5,8 +5,14 @@ import jun.spring.model.Car;
 import jun.spring.model.Spark;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.beans.factory.BeanCreationException;
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.beans.factory.support.RootBeanDefinition;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsNull.notNullValue;
@@ -64,6 +70,34 @@ public class BeanFactoryCrudTests {
         assertThat(dlbf.getBean("avante"), is(notNullValue()));
         assertThat(dlbf.getBean("avante", Avante.class), is(notNullValue()));
         assertThat(dlbf.getBean(Avante.class), is(notNullValue()));
+    }
+
+    @Test(expected = BeanCreationException.class)
+    public void 빈_예외_테스트() {
+        AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(AppConfig.class);
+        Outer outer = (Outer) context.getBean("outer");
+        assertNotNull(outer);
+    }
+
+    @Configuration
+    static class AppConfig {
+        @Bean
+        public Outer outer() {
+            return new Outer();
+        }
+//        @Bean
+//        public Inner inner() {
+//            return new Inner();
+//        }
+    }
+
+    static class Outer {
+        @Autowired
+        Inner inner;
+    }
+
+    static class Inner {
+
     }
 
 }
