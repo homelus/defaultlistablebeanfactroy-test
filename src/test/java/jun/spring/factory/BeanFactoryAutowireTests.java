@@ -1,9 +1,13 @@
 package jun.spring.factory;
 
 import com.sun.org.apache.bcel.internal.generic.DDIV;
+import jun.spring.model.Avante;
+import jun.spring.model.Company;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.beans.factory.BeanFactoryUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.beans.factory.config.ConstructorArgumentValues;
 import org.springframework.beans.factory.config.DependencyDescriptor;
 import org.springframework.beans.factory.support.AutowireCandidateQualifier;
@@ -16,6 +20,8 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 import static junit.framework.TestCase.assertFalse;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -71,6 +77,18 @@ public class BeanFactoryAutowireTests {
         assertTrue(factory.isAutowireCandidate(MIN, null));
         assertTrue(factory.isAutowireCandidate(MIN, nonqualifiedDescriptor));
         assertFalse(factory.isAutowireCandidate(MIN, qualifiedDescriptor));
+    }
+
+    @Test
+    public void 이름에의한_자동_빈_주입() {
+        DefaultListableBeanFactory dlbf = new DefaultListableBeanFactory();
+        RootBeanDefinition bd = new RootBeanDefinition(Avante.class);
+        dlbf.registerBeanDefinition("avante", bd);
+        Company company = (Company) dlbf.autowire(Company.class, AutowireCapableBeanFactory.AUTOWIRE_BY_NAME, true);
+        Avante avante = (Avante) dlbf.getBean("avante");
+        assertEquals(avante, company.getAvante());
+        assertSame(BeanFactoryUtils.beanOfType(dlbf, Avante.class), avante);
+
     }
 
     private static class QualifiedTestBean {
