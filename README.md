@@ -1,4 +1,5 @@
 # DefaultListableBeanFactory Study (Spring core 3.0.0 기반)
+ - Spring 의 기본이 되는 Bean Factory 를 TestCode 관점으로 공부하고 이해한다.
 
 > DefaultListableBeanFactory 는 ApplicationContext 에서 빈을 관리하는 부분에 해당한다.
 > 빈을 관리한다는 것은 크게 CRUD 의 기능으로 이해하면 좋을 것 같다.
