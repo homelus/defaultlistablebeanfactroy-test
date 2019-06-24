@@ -1,6 +1,4 @@
-# DefaultListableBeanFactory 공부 (Spring core 3.0.0 기반)
-
-- 혼자 공부한 부분이라 주관적이므로 부족하거나 틀린 부분이 있다면 알려주세요 
+# DefaultListableBeanFactory Study (Spring core 3.0.0 기반)
 
 > DefaultListableBeanFactory 는 ApplicationContext 에서 빈을 관리하는 부분에 해당한다.
 > 빈을 관리한다는 것은 크게 CRUD 의 기능으로 이해하면 좋을 것 같다.
