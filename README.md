@@ -13,7 +13,7 @@
 > AbstractAutowireCapableBeanFactory : 빈을 생성하는 메소드와 이를 도와주는 메소드를 구현한 추상 구현 클래스(빈 생성/빈 주입 등을 담당한다)<br>
 > DefaultListableBeanFactory : BeanDefinition 을 기반으로 빈을 관리하는 자체로 사용 가능한 클래스<br>
 
-## <p>빈을 등록하는 프로세스</p>
+## <p>Singleton Bean 혹은 BeanDefinition 을 등록하는 프로세스</p>
 
 1. 싱글톤으로 등록 (registerSingleton)
     - 싱글톤은 인스턴스로 등록한다.
@@ -22,8 +22,6 @@
 2. BeanDefinition 을 생성하여 등록 (registerBeanDefinition)
     - 보통 클래스파일을 BeanDefinition 에 저장하여 등록한다.
     - 유효성 검사를 통과한 BeanDefinition 은 DefaultListableBeanFactory 의 beanDefinitionMap Map 에 추가한다.
-
-3. 이외에도 여러가지(dependent bean, alias 등)를 등록할 수 있는데 추후에 점점 추가할 예정이다.
 
 ## <p>빈을 가져오는 프로세스</p> (AbstractBeanFactory : getBean -> doGetBean)
 
